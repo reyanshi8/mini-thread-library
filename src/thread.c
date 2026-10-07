@@ -13,7 +13,8 @@
 /* Thread states */
 #define READY       0
 #define RUNNING     1
-#define TERMINATED  2
+#define BLOCKED     2
+#define TERMINATED  3
 
 /* Thread Control Block */
 typedef struct {
@@ -248,4 +249,22 @@ int mt_join(int thread_id)
 int mt_self(void)
 {
     return current_thread;
+}
+/*
+ * Return the state of a thread.
+ *
+ * Returns:
+ *  0 = READY
+ *  1 = RUNNING
+ *  2 = BLOCKED
+ *  3 = TERMINATED
+ * -1 = invalid thread ID
+ */
+int mt_get_state(int thread_id)
+{
+    if (thread_id < 0 || thread_id >= thread_count) {
+        return -1;
+    }
+
+    return threads[thread_id].state;
 }

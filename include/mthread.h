@@ -24,6 +24,9 @@ int mt_join(int thread_id);
 /* Get the ID of the current thread */
 int mt_self(void);
 
+/* Get the state of a thread */
+int mt_get_state(int thread_id);
+
 /* =========================
  * Mutex
  * =========================
