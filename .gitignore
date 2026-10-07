@@ -1,0 +1,14 @@
+# Compiled object files
+*.o
+
+# Executable files
+basic_threads
+race_condition
+producer_consumer
+basic_test
+
+# macOS debug/build files
+*.dSYM/
+
+# macOS metadata
+.DS_Store
