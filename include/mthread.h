@@ -51,4 +51,14 @@ void mt_sem_init(mt_sem_t *sem, int value);
 void mt_sem_wait(mt_sem_t *sem);
 void mt_sem_post(mt_sem_t *sem);
 
+/* =========================
+ * Ready Queue
+ * =========================
+ */
+
+void mt_queue_init(void);
+int mt_queue_push(int thread_id);
+int mt_queue_pop(void);
+int mt_queue_is_empty(void);
+
 #endif

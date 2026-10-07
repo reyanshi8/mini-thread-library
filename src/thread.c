@@ -41,18 +41,7 @@ static int current_thread = -1;
 /*
  * Find the next READY thread.
  */
-static int find_next_thread(void)
-{
-    int i;
 
-    for (i = 0; i < thread_count; i++) {
-        if (threads[i].state == READY) {
-            return i;
-        }
-    }
-
-    return -1;
-}
 
 
 /*
@@ -81,6 +70,8 @@ static void thread_wrapper(uintptr_t thread_id)
 void mt_init(void)
 {
     int i;
+
+    mt_queue_init();
 
     thread_count = 1;
     current_thread = 0;
@@ -145,6 +136,13 @@ int mt_create(void (*function)(void *), void *arg)
     );
 
     thread_count++;
+	
+    if (mt_queue_push(id) != 0) {
+    free(threads[id].stack);
+    threads[id].stack = NULL;
+    threads[id].state = TERMINATED;
+    return -1;
+    }
 
     return id;
 }
@@ -159,17 +157,22 @@ void mt_yield(void)
     int previous;
 
     previous = current_thread;
-    next = find_next_thread();
+    next = mt_queue_pop();
 
     if (next == -1) {
         return;
     }
 
     if (threads[previous].state == RUNNING) {
-        threads[previous].state = READY;
-    }
+    threads[previous].state = READY;
 
-    threads[next].state = RUNNING;
+    if (mt_queue_push(previous) != 0) {
+        threads[previous].state = RUNNING;
+        return;
+    }
+}
+
+threads[next].state = RUNNING;
     current_thread = next;
 
     swapcontext(
@@ -199,7 +202,7 @@ void mt_exit(void)
         threads[previous].stack = NULL;
     }
 
-    next = find_next_thread();
+    next = mt_queue_pop();
 
     if (next == -1) {
         /*
