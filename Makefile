@@ -9,7 +9,7 @@ SRC = src/thread.c \
 
 OBJ = $(SRC:.c=.o)
 
-all: basic_threads race_condition producer_consumer
+all: basic_threads race_condition producer_consumer preemption_demo
 
 basic_threads: $(OBJ) demos/basic_threads.c
 	$(CC) $(CFLAGS) $(OBJ) demos/basic_threads.c -o basic_threads
@@ -20,5 +20,8 @@ race_condition: $(OBJ) demos/race_condition.c
 producer_consumer: $(OBJ) demos/producer_consumer.c
 	$(CC) $(CFLAGS) $(OBJ) demos/producer_consumer.c -o producer_consumer
 
+preemption_demo: $(OBJ) demos/preemption_demo.c
+	$(CC) $(CFLAGS) $(OBJ) demos/preemption_demo.c -o preemption_demo
+
 clean:
-	rm -f $(OBJ) basic_threads race_condition producer_consumer
+	rm -f $(OBJ) basic_threads race_condition producer_consumer preemption_demo
