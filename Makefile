@@ -9,7 +9,7 @@ SRC = src/thread.c \
 
 OBJ = $(SRC:.c=.o)
 
-DEMOS = basic_threads demo_person1
+DEMOS = basic_threads demo_person1 preemption_demo race_condition producer_consumer
 TESTS = test_queue test_lifecycle test_block test_validation
 
 .PHONY: all test clean
@@ -22,7 +22,9 @@ basic_threads: $(OBJ) demos/basic_threads.c
 demo_person1: $(OBJ) demos/demo_person1.c
 	$(CC) $(CFLAGS) $(OBJ) demos/demo_person1.c -o demo_person1
 
-# Person 3 targets (available when implemented)
+preemption_demo: $(OBJ) demos/preemption_demo.c
+	$(CC) $(CFLAGS) $(OBJ) demos/preemption_demo.c -o preemption_demo
+
 race_condition: $(OBJ) demos/race_condition.c
 	$(CC) $(CFLAGS) $(OBJ) demos/race_condition.c -o race_condition
 
@@ -55,4 +57,4 @@ test: $(TESTS)
 	@echo "=========================================="
 
 clean:
-	rm -rf $(OBJ) $(DEMOS) $(TESTS) race_condition producer_consumer *.dSYM
+	rm -rf $(OBJ) $(DEMOS) $(TESTS) *.dSYM

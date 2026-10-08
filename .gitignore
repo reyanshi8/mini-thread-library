@@ -4,9 +4,9 @@
 # Executables
 basic_threads
 demo_person1
+preemption_demo
 race_condition
 producer_consumer
-basic_test
 test_queue
 test_lifecycle
 test_block
