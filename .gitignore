@@ -1,11 +1,16 @@
 # Compiled object files
 *.o
 
-# Executable files
+# Executables
 basic_threads
+demo_person1
 race_condition
 producer_consumer
 basic_test
+test_queue
+test_lifecycle
+test_block
+test_validation
 
 # macOS debug/build files
 *.dSYM/
