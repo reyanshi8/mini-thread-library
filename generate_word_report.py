@@ -25,16 +25,16 @@ def create_complete_report():
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_title.paragraph_format.space_before = Pt(0)
     p_title.paragraph_format.space_after = Pt(2)
-    run_title = p_title.add_run("OPERATING SYSTEMS PROJECT REPORT")
+    run_title = p_title.add_run("MicroThreads: A User-Level Threading Library with Pluggable Pre-emptive Scheduling and Synchronization Primitives, Benchmarked Against POSIX Threads")
     run_title.font.name = "Arial"
-    run_title.font.size = Pt(22)
+    run_title.font.size = Pt(18)
     run_title.font.bold = True
     run_title.font.color.rgb = PRIMARY
 
     p_sub = doc.add_paragraph()
     p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_sub.paragraph_format.space_after = Pt(14)
-    run_sub = p_sub.add_run("Design, Implementation, Verification & Empirical POSIX Benchmarking\nof an M:1 Preemptive User-Level Thread Library in C")
+    run_sub = p_sub.add_run("Operating Systems Lab — Review I Project Report")
     run_sub.font.name = "Arial"
     run_sub.font.size = Pt(13)
     run_sub.font.bold = True
