@@ -6,28 +6,26 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 
-def create_report():
+def create_complete_report():
     doc = docx.Document()
 
-    # Set margins
+    # Margins
     for section in doc.sections:
         section.top_margin = Inches(0.9)
         section.bottom_margin = Inches(0.9)
         section.left_margin = Inches(0.9)
         section.right_margin = Inches(0.9)
 
-    # Color Palette
     PRIMARY = RGBColor(26, 82, 118)      # Deep Navy
     SECONDARY = RGBColor(44, 62, 80)     # Dark Slate
-    GRAY_BG = "F4F6F7"
-    GREEN = RGBColor(39, 174, 96)
+    GREEN = RGBColor(39, 174, 96)        # Success Green
 
-    # Title
+    # Document Header / Title
     p_title = doc.add_paragraph()
     p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_title.paragraph_format.space_before = Pt(0)
     p_title.paragraph_format.space_after = Pt(2)
-    run_title = p_title.add_run("PROJECT COMPREHENSIVE REPORT")
+    run_title = p_title.add_run("OPERATING SYSTEMS PROJECT REPORT")
     run_title.font.name = "Arial"
     run_title.font.size = Pt(22)
     run_title.font.bold = True
@@ -42,7 +40,7 @@ def create_report():
     run_sub.font.bold = True
     run_sub.font.color.rgb = SECONDARY
 
-    # Metadata Box
+    # Project Information Box
     meta_table = doc.add_table(rows=4, cols=2)
     meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     meta_data = [
@@ -66,22 +64,26 @@ def create_report():
 
     doc.add_paragraph().paragraph_format.space_after = Pt(10)
 
-    def add_heading(text, level=1):
-        h = doc.add_heading(level=level)
-        h.paragraph_format.space_before = Pt(12)
+    def add_h1(text):
+        h = doc.add_heading(level=1)
+        h.paragraph_format.space_before = Pt(14)
+        h.paragraph_format.space_after = Pt(4)
+        r = h.add_run(text)
+        r.font.name = "Arial"
+        r.font.size = Pt(14)
+        r.font.bold = True
+        r.font.color.rgb = PRIMARY
+        return h
+
+    def add_h2(text):
+        h = doc.add_heading(level=2)
+        h.paragraph_format.space_before = Pt(10)
         h.paragraph_format.space_after = Pt(3)
         r = h.add_run(text)
         r.font.name = "Arial"
+        r.font.size = Pt(11.5)
         r.font.bold = True
-        if level == 1:
-            r.font.size = Pt(15)
-            r.font.color.rgb = PRIMARY
-        elif level == 2:
-            r.font.size = Pt(12)
-            r.font.color.rgb = SECONDARY
-        else:
-            r.font.size = Pt(10.5)
-            r.font.color.rgb = SECONDARY
+        r.font.color.rgb = SECONDARY
         return h
 
     def add_body(text, bold_prefix=None, space_after=5):
@@ -98,13 +100,18 @@ def create_report():
         r.font.size = Pt(10)
         return p
 
-    # Section: Exact Code Ownership per Person
-    add_heading("1. Module Breakdown & Code Ownership per Person")
-    add_body("To prevent file conflicts and adhere to modular software architecture, each team member strictly owns specific source files, headers, test suites, and demonstration programs as defined below:")
+    # 1. Executive Summary & Objectives
+    add_h1("1. Executive Summary & Objectives")
+    add_body("Modern operating systems rely heavily on multi-threading for concurrency and system responsiveness. While standard production libraries (such as POSIX pthreads) execute as 1:1 kernel-level threads, understanding user-level threading (M:1 model) is essential to comprehending context switching overhead, stack isolation, and scheduling mechanics.")
+    add_body("The objective of this project is to develop a fully functional, preemptive user-level thread library in C from first principles without utilizing pthread_create(). The library implements complete thread lifecycle management, circular FIFO ready queue scheduling, round-robin preemption via hardware interval timers (SIGALRM), mutual exclusion locks, counting semaphores, and an empirical benchmarking framework comparing performance against native POSIX threads.")
+
+    # 2. Team Division & Code Ownership
+    add_h1("2. Team Division & Code Ownership Breakdown")
+    add_body("To prevent file conflicts and adhere to professional modular software architecture, each team member strictly owns specific source files, headers, test suites, and demonstration programs as defined below:")
 
     code_table = doc.add_table(rows=4, cols=4)
     code_table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    c_headers = ["Person", "Assigned Module", "Exact Source & Header Files", "Test / Demo Programs"]
+    c_headers = ["Person", "Assigned Module", "Exact Source & Header Files", "Test / Demo Programs Owned"]
     for i, h in enumerate(c_headers):
         cell = code_table.cell(0, i)
         cell.text = h
@@ -138,16 +145,55 @@ def create_report():
             if col_idx == 0:
                 r.font.bold = True
 
-    doc.add_paragraph().paragraph_format.space_after = Pt(8)
+    doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
-    # Detailed Responsibilities
-    add_heading("1.1 Individual Code Functions and Interfaces", level=2)
-    add_body("• Person 1 (src/thread.c, src/queue.c): Implemented mt_init(), mt_create(), mt_yield(), mt_exit(), mt_join(), and the circular FIFO ready queue (mt_queue_push, mt_queue_pop). Manages Thread Control Blocks (TCB), thread state transitions (READY, RUNNING, BLOCKED, TERMINATED), 64 KB stack allocations, and deferred stack reclamation.")
-    add_body("• Person 2 (src/sched.c, src/timer.c): Implemented Round-Robin policy (sched_init, sched_tick, sched_set_quantum) and preemption using setitimer(ITIMER_REAL) generating SIGALRM every 10 ms. Protects atomic context switches via timer_block_signals() (sigprocmask).")
-    add_body("• Person 3 (src/sync.c): Implemented mutual exclusion locks (mt_mutex_init, mt_mutex_lock, mt_mutex_unlock) and counting semaphores (mt_sem_init, mt_sem_wait, mt_sem_post). Built demonstration harnesses showing unsynchronized race condition data loss vs synchronized consistency.")
+    # 3. System Architecture & Thread Control Block
+    add_h1("3. System Architecture & Thread Control Block")
+    add_body("The library adopts the M:1 User-Level Threading model, where multiple user threads map to a single operating system process. The internal structure is governed by the Thread Control Block (TCB):")
+    add_body("• Thread Identifier (id): Unique integer (0 to MAX_THREADS-1). Thread 0 represents the main thread.")
+    add_body("• Thread State (state): Tracks whether the thread is READY, RUNNING, BLOCKED, or TERMINATED.")
+    add_body("• Dedicated Stack (stack): Each thread receives an isolated 64 KB user-space memory stack allocated via malloc().")
+    add_body("• Execution Context (context): System V ucontext_t capturing CPU registers (Stack Pointer, Program Counter, general registers).")
+    add_body("• Deferred Stack Cleanup: Avoids freeing active stacks during mt_exit() by deferring stack deallocation until the next context switch occurs.")
 
-    # Section 9: Testing and Demonstration Table
-    add_heading("9. Testing and Demonstration")
+    # 4. Ready Queue Implementation
+    add_h1("4. Ready Queue Implementation")
+    add_body("Thread scheduling relies on an efficient, fixed-capacity circular FIFO queue (src/queue.c):")
+    add_body("• mt_queue_push(thread_id): Appends a thread to the rear of the queue in O(1) time complexity.")
+    add_body("• mt_queue_pop(): Dequeues the front thread in O(1) time complexity, returning -1 if empty.")
+    add_body("• Circular Wrap-Around: Modulo arithmetic ((rear + 1) % MAX_QUEUE_SIZE) prevents queue starvation or memory fragmentation.")
+
+    # 5. Context Switching Mechanics
+    add_h1("5. Context Switching Mechanics")
+    add_body("Context switching is executed entirely in user space without issuing kernel traps:")
+    add_body("1. Thread Initialization: getcontext() initializes the context, makecontext() binds the target function, arguments, and stack.")
+    add_body("2. Voluntary Yielding (mt_yield): The running thread changes state from RUNNING to READY, is re-enqueued, and swapcontext(&previous, &next) transfers CPU registers directly to the next ready thread.")
+    add_body("3. Clean Exit (mt_exit): Marks the thread TERMINATED, frees deferred resources, and setcontext(&next) switches to the next thread.")
+
+    # 6. Scheduling & Preemption Design
+    add_h1("6. Scheduling & Preemption Design")
+    add_body("To prevent compute-bound threads from monopolizing the CPU, Person 2 implemented preemptive scheduling:")
+    add_body("• Round-Robin Policy: Threads execute for a maximum time slice (time quantum = 10 ms).")
+    add_body("• Hardware Interval Timer: Configured via setitimer(ITIMER_REAL, ...), triggering periodic SIGALRM interrupts.")
+    add_body("• Signal Handler (sched_tick): Traps SIGALRM and initiates a thread switch.")
+    add_body("• Signal Masking (sigprocmask): SIGALRM is temporarily blocked during queue manipulation and context switches to eliminate race conditions and corrupted register states.")
+
+    # 7. Synchronization Primitives
+    add_h1("7. Synchronization Primitives")
+    add_body("To support safe multi-threaded concurrency, Person 3 implemented two core primitives:")
+    add_body("• Mutex (mt_mutex_t): Binary mutual exclusion lock. If locked, subsequent threads block or yield until unlocked, ensuring that critical section invariants are preserved.")
+    add_body("• Counting Semaphore (mt_sem_t): Maintains an integer token counter. mt_sem_wait() decrements the counter (blocking if <= 0), and mt_sem_post() increments the counter, waking blocked threads.")
+
+    # 8. GitHub Team Workflow & Clean Integration
+    add_h1("8. GitHub Team Workflow & Clean Integration")
+    add_body("The team followed strict Git collaborative engineering rules:")
+    add_body("• Person 1 branched to person1-thread-management, Person 2 to person2-scheduling, and Person 3 to person3-synchronization.")
+    add_body("• Rule 6 compliance: include/mthread.h was strictly owned by Person 1 to avoid merge conflicts.")
+    add_body("• Small, descriptive commits were pushed incrementally.")
+    add_body("• All three branches were cleanly merged into main, validated against the full regression test suite, and deployed.")
+
+    # 9. Testing and Demonstration
+    add_h1("9. Testing and Demonstration")
     add_body("The table below presents the verified execution results and empirical evidence for each test criteria across all modules:")
 
     test_table = doc.add_table(rows=6, cols=3)
@@ -191,8 +237,8 @@ def create_report():
 
     add_body("Note: The above entries reflect actual terminal verification and regression test runs executing in the project environment.", space_after=10)
 
-    # Section 10: Performance Comparison with POSIX Threads
-    add_heading("10. Performance Comparison with POSIX Threads")
+    # 10. Performance Comparison with POSIX Threads
+    add_h1("10. Performance Comparison with POSIX Threads")
     add_body("Benchmark methodology: Implemented equivalent workloads using the user-level library and pthread_create() / pthread_join() / sched_yield() / pthread_mutex; ran both on the same machine under identical compiler optimizations (-Wall -Wextra -g -O0 / _XOPEN_SOURCE=700). Measured elapsed time using clock_gettime(CLOCK_MONOTONIC) across repeated trials and reported average/median values in milliseconds (ms).")
 
     posix_table = doc.add_table(rows=5, cols=3)
@@ -234,28 +280,28 @@ def create_report():
     # Graphical Attachment
     img_path = "/Users/ivygupta/Downloads/OS PROj/mini-thread-library/benchmark_results.png"
     if os.path.exists(img_path):
-        add_heading("10.1 Benchmark Visual Comparison Chart", level=2)
+        add_h2("10.1 Benchmark Visual Comparison Chart")
         p_img = doc.add_paragraph()
         p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run_img = p_img.add_run()
         run_img.add_picture(img_path, width=Inches(6.2))
         p_cap = doc.add_paragraph()
         p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r_cap = p_cap.add_run("Figure 1: Empirical Benchmark Comparison — Thread Creation Latency & Mutex Overhead")
+        r_cap = p_cap.add_run("Figure 1: Measured Latency — Thread Creation & Termination vs. Mutex Overhead")
         r_cap.font.name = "Arial"
         r_cap.font.size = Pt(9)
         r_cap.font.italic = True
 
-    # Comparative Discussion
-    add_heading("10.2 Empirical Analysis and Architectural Insights", level=2)
+    # 11. Analysis & Conclusion
+    add_h1("11. Architectural Analysis & Conclusion")
     add_body("1. Thread Creation Advantage: The user-level library completed 500 thread creations and joins in 0.85 ms compared to 8.23 ms for POSIX threads (~9.7x speedup). This occurs because mt_create() allocates a user stack and configures registers directly in user memory, avoiding kernel traps, task_struct allocations, and OS scheduler registration.")
     add_body("2. Thread Handoff Trade-off: Repeated cooperating yields required 85.85 ms in the user library vs 25.94 ms in POSIX pthreads. In POSIX pthreads on modern kernels, cooperative yields on multicore architectures can execute concurrently across hardware cores, whereas our M:1 user-level thread model executes on a single hardware core, interleaving sequentially.")
     add_body("3. Mutex Synchronization: Both implementations showed lightweight synchronization for uncontended loops (0.49 ms user vs 0.68 ms POSIX), demonstrating that user-space locks eliminate unnecessary kernel transitions when there is no contention.")
+    add_body("In conclusion, the project successfully demonstrates the foundational principles of operating system threading, illustrating why user-space fibers/coroutines provide extreme performance for lightweight I/O and task dispatching, while kernel threads provide true hardware multi-core parallelism.")
 
-    # Save
     out_path = "/Users/ivygupta/Downloads/OS PROj/mini-thread-library/Mini_Thread_Library_Project_Report.docx"
     doc.save(out_path)
-    print(f"Report updated successfully at {out_path}")
+    print(f"Report updated with complete 1 to 11 sections at {out_path}")
 
 if __name__ == "__main__":
-    create_report()
+    create_complete_report()
