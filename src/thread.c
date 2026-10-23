@@ -118,7 +118,21 @@ int mt_create(void (*function)(void *), void *arg)
 
     cleanup_deferred_stack();
 
-    id = thread_count;
+    /* Find an available slot in threads table, or append if under limit */
+    id = -1;
+    for (int i = 1; i < thread_count; i++) {
+        if (threads[i].state == MT_TERMINATED) {
+            id = i;
+            break;
+        }
+    }
+
+    if (id == -1) {
+        if (thread_count >= MAX_THREADS) {
+            return -1;
+        }
+        id = thread_count++;
+    }
 
     threads[id].id = id;
     threads[id].state = MT_READY;
@@ -144,13 +158,10 @@ int mt_create(void (*function)(void *), void *arg)
         (uintptr_t)id
     );
 
-    thread_count++;
-
     if (mt_queue_push(id) != 0) {
         free(threads[id].stack);
         threads[id].stack = NULL;
         threads[id].state = MT_TERMINATED;
-        thread_count--;
         return -1;
     }
 

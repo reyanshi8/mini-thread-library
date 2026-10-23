@@ -9,7 +9,7 @@ SRC = src/thread.c \
 
 OBJ = $(SRC:.c=.o)
 
-DEMOS = basic_threads demo_person1 preemption_demo race_condition producer_consumer
+DEMOS = basic_threads demo_person1 preemption_demo race_condition producer_consumer benchmark_posix
 TESTS = test_queue test_lifecycle test_block test_validation
 
 .PHONY: all test clean
@@ -30,6 +30,9 @@ race_condition: $(OBJ) demos/race_condition.c
 
 producer_consumer: $(OBJ) demos/producer_consumer.c
 	$(CC) $(CFLAGS) $(OBJ) demos/producer_consumer.c -o producer_consumer
+
+benchmark_posix: $(OBJ) demos/benchmark_posix.c
+	$(CC) $(CFLAGS) $(OBJ) demos/benchmark_posix.c -o benchmark_posix -lpthread
 
 # Person 1 Unit Tests
 test_queue: src/queue.o tests/test_queue.c
